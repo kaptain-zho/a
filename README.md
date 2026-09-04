@@ -1,3 +1,1 @@
-Why did the programmer bring a ladder to work?
-
-To reach the next level of abstraction.
+My code asked for a vacation. I told it to take a breakpoint.
