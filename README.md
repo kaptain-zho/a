@@ -1,1 +1,1 @@
-I asked my laptop for a sign. It gave me a low-battery warning.
+My game character has unlimited stamina. I get tired choosing a username.
