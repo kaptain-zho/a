@@ -1,1 +1,1 @@
-My code asked for a vacation. I told it to take a breakpoint.
+I asked my laptop for a sign. It gave me a low-battery warning.
