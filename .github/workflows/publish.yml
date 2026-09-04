@@ -1,0 +1,89 @@
+name: Publish
+on:
+  schedule:
+    - cron: '0 16 * * *'
+    - cron: '37 16 * * *'
+    - cron: '17 19 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: daily-post
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      POST_BANK: ${{ secrets.POST_BANK }}
+      GH_TOKEN: ${{ github.token }}
+      REPOSITORY: ${{ github.repository }}
+    steps:
+      - name: Publish today's text
+        shell: python
+        run: |
+          import os, json, base64, hashlib, urllib.request
+          from datetime import datetime, date, timedelta
+          from zoneinfo import ZoneInfo
+          zone = ZoneInfo('America/Phoenix')
+          today = datetime.now(zone).date()
+          data = json.loads(os.environ['POST_BANK'])
+          queued = data['queued']
+          banks = data['banks']
+          jokes, ariana, eerie, slushy = (banks[k] for k in ('joke', 'ariana', 'eerie', 'slushy'))
+          def kind(d):
+              if d.weekday() == 6:
+                  return 'ariana'
+              monday = d - timedelta(days=d.weekday())
+              seed = int(hashlib.sha256(monday.isoformat().encode()).hexdigest()[:8], 16)
+              if d >= date(2026, 9, 12) and d.weekday() == 1 + seed % 4:
+                  return 'eerie'
+              if d.weekday() == 5 and ((monday - date(2026, 8, 31)).days // 7) % 2 == 0:
+                  return 'slushy'
+              return 'joke'
+          def select(d):
+              if d.isoformat() in queued:
+                  return queued[d.isoformat()]
+              k = kind(d)
+              cursor = date(2026, 9, 8)
+              index = 0
+              while cursor < d:
+                  if kind(cursor) == k:
+                      index += 1
+                  cursor += timedelta(days=1)
+              return banks[k][index % len(banks[k])].strip()
+          for key, value in queued.items():
+              assert select(date.fromisoformat(key)) == value
+          for offset in range(730):
+              d = date(2026, 9, 8) + timedelta(days=offset)
+              text = select(d)
+              assert text and '\n' not in text
+              assert ('Ariana' in text) == (d.weekday() == 6)
+              assert not (kind(d) == 'eerie' and kind(d + timedelta(days=1)) == 'eerie')
+          year_start = date(2026, 9, 5)
+          first_year = [select(year_start + timedelta(days=i)) for i in range(366)]
+          assert len(first_year) == len(set(first_year)), 'Repeated post within first year'
+          all_posts = [post.strip() for bank in banks.values() for post in bank] + list(queued.values())
+          assert len(all_posts) == len(set(all_posts)), 'Duplicate bank entry'
+          assert len(jokes) >= 245 and len(ariana) >= 54 and len(eerie) >= 54 and len(slushy) >= 28
+          print('Validated 366 unique daily posts and all content rules.')
+          def api(path, payload=None):
+              request = urllib.request.Request('https://api.github.com/repos/' + os.environ['REPOSITORY'] + path,
+                  data=None if payload is None else json.dumps(payload).encode(),
+                  headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'},
+                  method='GET' if payload is None else 'PUT')
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  return json.load(response)
+          info = api('')
+          assert info['owner']['login'] == 'kaptain-zho' and info['default_branch'] == 'main'
+          current = api('/contents/README.md?ref=main')
+          commits = api('/commits?path=README.md&sha=main&per_page=1')
+          last_date = datetime.fromisoformat(commits[0]['commit']['committer']['date'].replace('Z', '+00:00')).astimezone(zone).date()
+          if today < date(2026, 9, 5) or last_date >= today:
+              print('Validation passed. Today already has a post; nothing changed.')
+          else:
+              text = select(today)
+              result = api('/contents/README.md', {'message': text, 'content': base64.b64encode((text + '\n').encode()).decode(), 'sha': current['sha'], 'branch': 'main', 'author': {'name': 'zho', 'email': '65126964+kaptain-zho@users.noreply.github.com'}})
+              saved = api('/contents/README.md?ref=main')
+              assert base64.b64decode(saved['content']).decode() == text + '\n'
+              print('Published and verified: ' + result['commit']['html_url'])
