@@ -78,14 +78,17 @@ jobs:
           assert info['owner']['login'] == 'kaptain-zho' and info['default_branch'] == 'main'
           current = api('/contents/README.md?ref=main')
           history = base64.b64decode(current['content']).decode()
-          heading = 'Dates use America/Phoenix time. Newest jokes appear first.\n\n'
-          assert history.startswith(heading), 'Expected dated joke history; refusing to overwrite README'
-          entry_prefix = '- **' + today.isoformat() + '** — '
+          entries = [line for line in history.splitlines() if line.strip()]
+          assert entries, 'Expected dated joke history; refusing to overwrite README'
+          for entry in entries:
+              datetime.strptime(entry[:10], '%Y/%m/%d')
+              assert entry[10:11] == ' ' and entry[11:].strip(), 'Invalid dated joke entry'
+          entry_prefix = today.strftime('%Y/%m/%d') + ' '
           if today < date(2026, 9, 5) or any(line.startswith(entry_prefix) for line in history.splitlines()):
               print('Validation passed. Today already has a post; nothing changed.')
           else:
               text = select(today)
-              updated = heading + entry_prefix + text + '\n' + history[len(heading):]
+              updated = entry_prefix + text + '\n\n' + history
               result = api('/contents/README.md', {'message': text, 'content': base64.b64encode(updated.encode()).decode(), 'sha': current['sha'], 'branch': 'main', 'author': {'name': 'zho', 'email': '65126964+kaptain-zho@users.noreply.github.com'}})
               saved = api('/contents/README.md?ref=main')
               assert base64.b64decode(saved['content']).decode() == updated
