@@ -1,5 +1,3 @@
-# Daily jokes
-
 Dates use America/Phoenix time. Newest jokes appear first.
 
 - **2026-09-04** — My computer said everything was under control. Then it asked me to press Escape.
