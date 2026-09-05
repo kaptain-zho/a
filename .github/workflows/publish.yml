@@ -77,13 +77,16 @@ jobs:
           info = api('')
           assert info['owner']['login'] == 'kaptain-zho' and info['default_branch'] == 'main'
           current = api('/contents/README.md?ref=main')
-          commits = api('/commits?path=README.md&sha=main&per_page=1')
-          last_date = datetime.fromisoformat(commits[0]['commit']['committer']['date'].replace('Z', '+00:00')).astimezone(zone).date()
-          if today < date(2026, 9, 5) or last_date >= today:
+          history = base64.b64decode(current['content']).decode()
+          heading = '# Daily jokes\n\nDates use America/Phoenix time. Newest jokes appear first.\n\n'
+          assert history.startswith(heading), 'Expected dated joke history; refusing to overwrite README'
+          entry_prefix = '- **' + today.isoformat() + '** — '
+          if today < date(2026, 9, 5) or any(line.startswith(entry_prefix) for line in history.splitlines()):
               print('Validation passed. Today already has a post; nothing changed.')
           else:
               text = select(today)
-              result = api('/contents/README.md', {'message': text, 'content': base64.b64encode((text + '\n').encode()).decode(), 'sha': current['sha'], 'branch': 'main', 'author': {'name': 'zho', 'email': '65126964+kaptain-zho@users.noreply.github.com'}})
+              updated = heading + entry_prefix + text + '\n' + history[len(heading):]
+              result = api('/contents/README.md', {'message': text, 'content': base64.b64encode(updated.encode()).decode(), 'sha': current['sha'], 'branch': 'main', 'author': {'name': 'zho', 'email': '65126964+kaptain-zho@users.noreply.github.com'}})
               saved = api('/contents/README.md?ref=main')
-              assert base64.b64decode(saved['content']).decode() == text + '\n'
+              assert base64.b64decode(saved['content']).decode() == updated
               print('Published and verified: ' + result['commit']['html_url'])
