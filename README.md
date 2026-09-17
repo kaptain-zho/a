@@ -1,3 +1,5 @@
+2026/09/17 I started a band called Cache. You probably remember us from somewhere.
+
 2026/09/16 The clock stopped, but the ticking moved closer.
 
 2026/09/15 My password is incorrect. That way, the computer reminds me every time.
