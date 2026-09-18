@@ -1,3 +1,5 @@
+2026/09/18 I put Twenty Three on repeat. My headphones have stopped asking what comes next.
+
 2026/09/17 I started a band called Cache. You probably remember us from somewhere.
 
 2026/09/16 The clock stopped, but the ticking moved closer.
