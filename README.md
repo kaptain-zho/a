@@ -1,3 +1,5 @@
+2026/10/02 I asked a database for relationship advice. It said to avoid unnecessary joins.
+
 2026/10/01 Every mirror in the house is one second late.
 
 2026/09/30 My fridge is running. I wish it would pick up groceries.
