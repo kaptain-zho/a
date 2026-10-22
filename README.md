@@ -1,3 +1,5 @@
+2026/10/22 The skeleton skipped the argument. It didn't have the guts.
+
 2026/10/21 My computer beat me at chess. It lost badly at kickboxing.
 
 2026/10/20 The echo answered before the voice.
