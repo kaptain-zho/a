@@ -1,3 +1,5 @@
+2026/10/27 The window was painted shut from the outside. On the seventh floor.
+
 2026/10/26 The stairs and I have our ups and downs.
 
 2026/10/25 Ariana's shopping cart has more ambition than her budget.
