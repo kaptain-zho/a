@@ -1,3 +1,5 @@
+2026/11/13 My shoes started a podcast. Mostly sole-searching.
+
 2026/11/12 I tried to take a shortcut. It asked for administrator permission.
 
 2026/11/11 The hallway ends where you remember it beginning.
